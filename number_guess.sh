@@ -2,6 +2,7 @@
 
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
+# Prompt user for username
 echo "Enter your username:"
 read USERNAME
 
@@ -11,13 +12,19 @@ USER_DATA=$($PSQL "SELECT user_id, games_played, best_game FROM users WHERE user
 if [[ -z $USER_DATA ]]; then
   # New user
   echo "Welcome, $USERNAME! It looks like this is your first time here."
-  $PSQL "INSERT INTO users(username) VALUES('$USERNAME')"
-  USER_ID=$($PSQL "SELECT user_id FROM users WHERE username='$USERNAME'")
-  GAMES_PLAYED=0
-  BEST_GAME=NULL
-else
-  # Returning user
-  IFS='|' read USER_ID GAMES_PLAYED BEST_GAME <<< "$USER_DATA"
+  
+  # Insert new user with default values
+  $PSQL "INSERT INTO users(username, games_played, best_game) VALUES('$USERNAME', 0, NULL)"
+  
+  # Retrieve user_id
+  USER_DATA=$($PSQL "SELECT user_id, games_played, best_game FROM users WHERE username='$USERNAME'")
+fi
+
+# Extract user details
+IFS='|' read USER_ID GAMES_PLAYED BEST_GAME <<< "$USER_DATA"
+
+# Returning user message
+if [[ $GAMES_PLAYED -gt 0 ]]; then
   echo "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 fi
 
@@ -46,6 +53,8 @@ while true; do
 
     # Update user stats
     ((GAMES_PLAYED++))
+    
+    # Update best game only if it's NULL or a higher number
     if [[ -z "$BEST_GAME" || "$NUMBER_OF_GUESSES" -lt "$BEST_GAME" ]]; then
       BEST_GAME=$NUMBER_OF_GUESSES
     fi
