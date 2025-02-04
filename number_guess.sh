@@ -3,7 +3,7 @@
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
 # Prompt user for username
-echo "Enter your username:"
+echo "onajite:"
 read USERNAME
 
 # Check if user exists in the database
